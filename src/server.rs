@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use async_stream::stream;
 
-use futures_util::future::TryFutureExt;
 use hyper::{
     server::accept,
     service::{make_service_fn, service_fn},
@@ -9,7 +8,9 @@ use hyper::{
 };
 use rustls::server::ServerConfig;
 use rustls_pemfile::{certs, rsa_private_keys};
+use std::time::Duration;
 use std::{io, io::Cursor, net::SocketAddr, sync::Arc};
+use tokio::time::sleep;
 use tokio::{net::TcpListener, sync::mpsc::Sender};
 use tokio_rustls::TlsAcceptor;
 use tracing::{error, info};
@@ -74,12 +75,36 @@ pub(crate) async fn run_server(
             let tcp = TcpListener::bind(&addr).await.unwrap();
             let incoming_tls_stream = stream! {
                 loop {
-                    let (socket, _) = tcp.accept().await?;
-                    let stream = tls_acceptor.accept(socket).map_err(|e| {
-                        error!("[!] Voluntary server halt due to client-connection error...");
-                        io::Error::new(io::ErrorKind::Other, e)
-                    });
-                    yield stream.await;
+                    let mut retries = 3;
+                    let mut delay = Duration::from_secs(1);
+                    loop {
+                        let (socket, _) = match tcp.accept().await {
+                            Ok(s) => s,
+                            Err(e) => {
+                                error!("Failed to accept TCP connection: {}", e);
+                                sleep(Duration::from_secs(2)).await;
+                                continue;
+                            }
+                        };
+                        match tls_acceptor.accept(socket).await {
+                            Ok(stream) => {
+                                yield Ok(stream);
+                                break;
+                            }
+                            Err(e) => {
+                                if retries == 0 {
+                                    error!("[!] Voluntary server halt due to client-connection error: {}", e);
+                                    yield Err(io::Error::new(io::ErrorKind::Other, e));
+                                    break;
+                                } else {
+                                    error!("Error accepting TLS connection: {}. Retrying in {:?}...", e, delay);
+                                    retries -= 1;
+                                    sleep(delay).await;
+                                    delay *= 2;
+                                }
+                            }
+                        }
+                    }
                 }
             };
 
