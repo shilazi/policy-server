@@ -1,21 +1,35 @@
-FROM alpine AS common
-RUN echo "policy-server:x:65533:65533::/tmp:/sbin/nologin" >> /etc/passwd
-RUN echo "policy-server:x:65533:policy-server" >> /etc/group
+FROM rust:1.69 AS builder
 
-# amd64-specific
-FROM scratch AS build-amd64
-COPY --from=common /etc/passwd /etc/passwd
-COPY --from=common /etc/group /etc/group
-COPY --chmod=0755 policy-server-x86_64 /policy-server
+RUN set -x \
+    && DEBIAN_FRONTEND=noninteractive apt update \
+    && DEBIAN_FRONTEND=noninteractive apt install -y \
+        --no-install-recommends musl-tools
 
-# arm64-specific
-FROM scratch AS build-arm64
-COPY --from=common /etc/passwd /etc/passwd
-COPY --from=common /etc/group /etc/group
-COPY --chmod=0755 policy-server-aarch64 /policy-server
+WORKDIR /workspace
 
-# common final steps
-FROM build-${TARGETARCH}
+ADD .cargo/ .cargo/
+ADD Cargo.toml Cargo.toml
+ADD Cargo.lock Cargo.lock
+
+RUN cargo fetch
+
+ADD src/ src/
+
+RUN set -x \
+    && cargo build --release \
+    && strip target/release/policy-server \
+    && mv target/release/policy-server policy-server
+
+# ---------- 8< ----------
+
+FROM debian:bookworm-slim
+
+RUN set -x \
+    && echo "policy-server:x:65533:policy-server" >> /etc/group \
+    && echo "policy-server:x:65533:65533::/tmp:/sbin/nologin" >> /etc/passwd
+
+COPY --from=builder /workspace/policy-server /policy-server
+
 USER 65533:65533
 EXPOSE 3000
 ENTRYPOINT ["/policy-server"]
