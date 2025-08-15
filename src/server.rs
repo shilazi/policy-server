@@ -110,7 +110,9 @@ pub(crate) async fn run_server(
 
             let acceptor = accept::from_stream(incoming_tls_stream);
             let make_svc = mk_svc_fn!(api_tx);
-            let server = Server::builder(acceptor).serve(make_svc);
+            let server = Server::builder(acceptor)
+                .serve(make_svc)
+                .with_graceful_shutdown(shutdown_signal());
 
             info!(address = addr.to_string().as_str(), "started HTTPS server");
             if let Err(e) = server.await {
@@ -118,4 +120,14 @@ pub(crate) async fn run_server(
             }
         }
     };
+}
+
+async fn shutdown_signal() {
+    use tokio::signal::unix::{signal, SignalKind};
+    let mut term = signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
+    tokio::select! {
+        _ = tokio::signal::ctrl_c() => {},
+        _ = term.recv() => {},
+    }
+    info!("Shutdown signal received");
 }
