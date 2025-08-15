@@ -314,7 +314,7 @@ checksum = "a4a45a46ab1f2412e53d3a0ade76ffad2025804294569aae387231a0cd6e0899"
 [[package]]
 name = "burrego"
 version = "0.1.2"
-source = "git+https://github.com/kubewarden/policy-evaluator?tag=v0.2.16#e535c7ffcf4d66d650769f582f9206d58bb263aa"
+source = "git+https://github.com/shilazi/policy-evaluator?branch=add-some-feature-v0.2.16#baf773d3682e31b7a89928ee9847c14731203d3e"
 dependencies = [
  "anyhow",
  "base64",
@@ -1996,7 +1996,7 @@ dependencies = [
 [[package]]
 name = "oci-distribution"
 version = "0.8.1"
-source = "git+https://github.com/krustlet/oci-distribution?rev=0f717968093a5415f428503d741dedf24ea97948#0f717968093a5415f428503d741dedf24ea97948"
+source = "git+https://github.com/oras-project/rust-oci-client?rev=c8d832e80e1b84d2de02c24b2c1ada82a9dcdde4#c8d832e80e1b84d2de02c24b2c1ada82a9dcdde4"
 dependencies = [
  "anyhow",
  "futures-util",
@@ -2407,7 +2407,7 @@ dependencies = [
 [[package]]
 name = "policy-evaluator"
 version = "0.2.16"
-source = "git+https://github.com/kubewarden/policy-evaluator?tag=v0.2.16#e535c7ffcf4d66d650769f582f9206d58bb263aa"
+source = "git+https://github.com/shilazi/policy-evaluator?branch=add-some-feature-v0.2.16#baf773d3682e31b7a89928ee9847c14731203d3e"
 dependencies = [
  "anyhow",
  "base64",
@@ -2433,7 +2433,7 @@ dependencies = [
 [[package]]
 name = "policy-fetcher"
 version = "0.6.0"
-source = "git+https://github.com/kubewarden/policy-fetcher?tag=v0.6.0#b53e7f9ced222a3ede6c8368645f5d57859d4921"
+source = "git+https://github.com/shilazi/policy-fetcher?branch=add-some-feature-v0.6.0#a6cc59e622530977fbfef390b62786c7bb72cc8e"
 dependencies = [
  "anyhow",
  "async-std",
@@ -3150,7 +3150,7 @@ dependencies = [
 [[package]]
 name = "sigstore"
 version = "0.2.0"
-source = "git+https://github.com/sigstore/sigstore-rs?rev=3954129ff0fc91beb8b8a6568ecb09e8c2d19392#3954129ff0fc91beb8b8a6568ecb09e8c2d19392"
+source = "git+https://github.com/shilazi/sigstore-rs?branch=add-some-feature-v0.2.0#5308f45eb63155d4d9c2e181c10e90c7c1e29633"
 dependencies = [
  "async-trait",
  "base64",
